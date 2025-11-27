@@ -1,4 +1,0 @@
-parameter_code	description	services	begin_date	end_date
-61101	Wind Speed - Scalar	sampleData,dailyData,quarterlyData,annualData	20250101	20251231
-88101	PM2.5 - Local Conditions	sampleData,dailyData,quarterlyData,annualData	20250101	20251231
-81102	PM10 Total 0-10um	sampleData,dailyData,quarterlyData,annualData	20250101	20251231
