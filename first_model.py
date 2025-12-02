@@ -18,7 +18,7 @@ def solve(wind_data, historic_pm10_data, start_date):
         def ode(t, p, c):
             return np.array([c*(a - p[0])*s(t) + f(t)])
 
-        y0 = np.array([0])
+        y0 = np.array([historic_pm10_data[0]])
 
         # solve the system (evaluate at each data point)
         n_points = tf + 1  # from 0 to tf inclusive
@@ -37,7 +37,7 @@ def solve(wind_data, historic_pm10_data, start_date):
         # Calculate the error
         return np.linalg.norm(diff)
 
-    result = minimize(calculate_error, [0.1])
+    result = minimize(calculate_error, [0.1], bounds=[(0, None)])
     best_c = result.x[0]
 
     print(f"Found minimal error with c = {best_c}")
