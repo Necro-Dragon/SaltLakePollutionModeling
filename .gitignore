@@ -13,6 +13,9 @@ venv/
 env/
 .env
 .env.*
+uv.lock
+pyproject.toml
+.python-version
 
 # Rowan's big data files that, trust me bro, you're not ready for 
 air_utah_met/
