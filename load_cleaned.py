@@ -2,6 +2,8 @@ import csv
 import math
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
+from datetime import datetime
+import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 BASE = SCRIPT_DIR / "cleaned_data"
@@ -179,6 +181,39 @@ def load_nearby_daily(
             )
     return results
 
+def load_windspeed_and_pm10(start_date_str="2024-01-01", end_date_str="2024-12-31", return_dates=False):
+
+    def get_filter_dates_checker(start_date : str, end_date : str):
+        beginning_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        ending_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+        def checker(date : str):
+            date_object = datetime.strptime(date, "%Y-%m-%d").date()
+            if (beginning_date <= date_object) and (date_object <= ending_date):
+                return True
+            return False
+        
+        return checker
+    
+    checker = get_filter_dates_checker(start_date_str, end_date_str)
+
+    records = load_nearby_daily(
+        county_site_id="035-3014",  # Lake Park (Salt Lake County)
+        max_backup_radius=0.25,
+        params=("61101", "81102"),  # request wind + PM parameters
+    )
+    wind_speeds_semi_filtered = np.array([record["readings"]["61101"] if checker(record["date_local"]) else None for record in records])
+    pm10_recordings_semi_filtered = np.array([record["readings"]["81102"] if checker(record["date_local"]) else None for record in records])
+
+    wind_speeds = wind_speeds_semi_filtered[wind_speeds_semi_filtered != None]
+    pm10_recordings = pm10_recordings_semi_filtered[pm10_recordings_semi_filtered != None]
+
+    if return_dates:
+        dates_semi_filtered = np.array([record["date_local"] if checker(record["date_local"]) else None for record in records])
+        dates = dates_semi_filtered[dates_semi_filtered != None]
+        return wind_speeds, pm10_recordings, dates
+
+    return wind_speeds, pm10_recordings
 
 if __name__ == "__main__":
     data = load_nearby_daily()
