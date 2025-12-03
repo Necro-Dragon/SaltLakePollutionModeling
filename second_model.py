@@ -17,7 +17,7 @@ from data_loading_utils import load_windspeed_and_pm10
 from datetime import datetime
 
 def solve(wind_data, historic_pm10_data, start_date):
-    # P'(t) = c(\alpha - P(t))S(t) + f(t)
+    # P'(t) = c(\alpha)S(t) - kP(t))S(t) + f(t)
     t0 = 0
     tf = min(len(wind_data), len(historic_pm10_data)) - 1
 

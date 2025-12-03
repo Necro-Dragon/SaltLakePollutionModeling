@@ -6,18 +6,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp, solve_bvp
 from scipy.optimize import minimize
-from data_loading_utils import load_windspeed_and_pm10, load_surface_area
+from data_loading_utils import load_windspeed_and_pm10, load_surface_area, get_windspeed_pm10_sa
 from datetime import datetime
 import calendar
 
-def solve(wind_data, historic_pm10_data, start_date):
-    # P'(t) = c(\alpha - P(t))S(t) + f(t)
+def solve(wind_data, max_wind_data, historic_pm10_data, surface_area_data, healthy_lake_surface_area, start_date):
+    # P'(t) = c(\alpha)S(t) - kP(t))S(t) + f(t)
     t0 = 0
     tf = min(len(wind_data), len(historic_pm10_data)) - 1
 
     a = 20
     s = lambda t: wind_data[int(round(t))]
-    f = lambda t: 37.0 if wind_data[int(round(t))] >= 5 else 0.0
+
+    density_of_arsenic_in_lake =  5.73
+    mass_of_arsenic = 74.92
+    concentration = 2/100
+
+    def f(t):
+        max_wind_speed_t = max_wind_data[t]
+        if max_wind_speed_t >= 18:
+            exposed_surface_area = healthy_lake_surface_area - surface_area_data[t]
+            return (concentration*density_of_arsenic_in_lake*exposed_surface_area*max_wind_speed_t)/mass_of_arsenic
+        else:
+            return 0
+
 
     def solve_pollutant_model(c, k):
         def ode(t, p, c, k):
@@ -60,7 +72,6 @@ def solve(wind_data, historic_pm10_data, start_date):
 
     return best_c, best_k
 
-# wind_speeds, pm10_recordings = load_windspeed_and_pm10("2020-01-01", "2024-12-31")
+wind_data, pm10_recordings, surface_area_data = get_windspeed_pm10_sa("1999-01-01", "2025-12-31")
 
-surface_area = load_surface_area("2021-01-01", "2021-12-31")
-print(len(surface_area))
+solve(wind_speeds)

@@ -204,3 +204,7 @@ if __name__ == "__main__":
     print(f"Loaded {len(sample)} records with surface-area features")
     if sample:
         print("Sample record:", sample[0])
+
+def get_windspeed_pm10_sa(start_date, end_date, county_site_id="035-3014"):
+    windspeed_data, pm10_recordings = load_windspeed_and_pm10(start_date, end_date, county_site_id)
+    return windspeed_data, pm10_recordings, load_surface_area(start_date, end_date, county_site_id)
