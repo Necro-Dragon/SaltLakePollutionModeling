@@ -68,4 +68,5 @@ def solve(wind_data, historic_pm10_data, start_date):
 
 wind_speeds, pm10_recordings = load_windspeed_and_pm10("2020-01-01", "2024-12-31")
 best_c, best_k = solve(wind_speeds, pm10_recordings, "Jan. 1st 2020")
+
 plt.show()
