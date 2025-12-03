@@ -149,7 +149,7 @@ def _load_surface_areas(path=SURFACE_AREAS_PATH):
     return surface
 
 
-def add_surface_area_features(records, surface_csv_path=SURFACE_AREAS_PATH):
+def _add_surface_area_features(records, surface_csv_path=SURFACE_AREAS_PATH):
     """Merge precomputed surface areas/volumes into records by date.
 
     If a date lacks either north/south area, the record is dropped (mirrors the
@@ -184,9 +184,23 @@ def load_windspeed_and_pm10(start_date, end_date, county_site_id="035-3014"):
     series.sort(key=lambda x: x[0])
     return [w for _, w, _ in series], [p for _, _, p in series]
 
+def load_surface_area(start_date, end_date, county_site_id="035-3014"):
+    records = load_nearby_daily(county_site_id=county_site_id, max_backup_radius=0.25, params=["61101", "81102"])
+    records = _add_surface_area_features(records)
+    start = datetime.fromisoformat(start_date)
+    end = datetime.fromisoformat(end_date)
+    series = []
+    for rec in records:
+        d = datetime.fromisoformat(rec["date_local"])
+        if start <= d <= end:
+            readings = rec["readings"]
+            if "north_area_ft2" in rec and "south_area_ft2" in rec:
+                series.append((d, rec["north_area_ft2"] + rec["south_area_ft2"]))
+    series.sort(key=lambda x: x[0])
+    return [a for _, a in series]
 
 if __name__ == "__main__":
-    sample = add_surface_area_features(load_nearby_daily())
+    sample = _add_surface_area_features(load_nearby_daily())
     print(f"Loaded {len(sample)} records with surface-area features")
     if sample:
         print("Sample record:", sample[0])

@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp, solve_bvp
 from scipy.optimize import minimize
-from data_loading_utils import load_windspeed_and_pm10
+from data_loading_utils import load_windspeed_and_pm10, load_surface_area
 from datetime import datetime
 import calendar
 
@@ -50,14 +50,17 @@ def solve(wind_data, historic_pm10_data, start_date):
     print(f"Found minimal error with k = {best_k}")
 
     sol = solve_pollutant_model(best_c, best_k)
-    # plt.figure(figsize=(7, 4))
-    # plt.plot(sol.t, historic_pm10_data, label="Data")
-    # plt.plot(sol.t, sol.y[0], label="Pollutant Prediction")
-    # plt.title("Modeling Pollutant (PM10) over time")
-    # plt.ylabel("ppm")
-    # plt.xlabel(f"Days since {start_date}")
-    # plt.legend()
+    plt.figure(figsize=(7, 4))
+    plt.plot(sol.t, historic_pm10_data, label="Data")
+    plt.plot(sol.t, sol.y[0], label="Pollutant Prediction")
+    plt.title("Modeling Pollutant (PM10) over time")
+    plt.ylabel("ppm")
+    plt.xlabel(f"Days since {start_date}")
+    plt.legend()
 
     return best_c, best_k
 
-wind_speeds, pm10_recordings = load_windspeed_and_pm10("2020-01-01", "2024-12-31")
+# wind_speeds, pm10_recordings = load_windspeed_and_pm10("2020-01-01", "2024-12-31")
+
+surface_area = load_surface_area("2021-01-01", "2021-12-31")
+print(len(surface_area))
