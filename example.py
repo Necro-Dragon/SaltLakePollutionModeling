@@ -1,16 +1,9 @@
-#!/usr/bin/env python3
-"""Example usage of load_cleaned.py: scatter plot wind speed (61101) over time."""
-
-from __future__ import annotations
-
-from collections import defaultdict
 from datetime import datetime
-from itertools import cycle
 
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter, YearLocator
 
-from load_cleaned import load_nearby_daily
+from data_loading_utils import add_surface_area_features, load_nearby_daily
 
 
 def main() -> None:
@@ -19,38 +12,61 @@ def main() -> None:
         max_backup_radius=0.25,
         params=("61101", "81102", "88101"),  # request wind + PM parameters
     )
+    # Attach lake-surface features (north/south areas + volumes) by date.
+    records = add_surface_area_features(records)
 
     if not records:
         print("No records returned; check cleaned_data directory or parameters.")
         return
 
-    # Collect wind speed by site so each site can be colored independently.
-    by_site = defaultdict(list)
+    sample = records[0]
+    print(
+        "Sample record with surface areas:",
+        sample["date_local"],
+        f"north_area_ft2={sample.get('north_area_ft2')}",
+        f"south_area_ft2={sample.get('south_area_ft2')}",
+    )
+
+    # Build three aligned series: wind speed (61101), PM2.5 (88101), north/south surface area.
+    series = []
     for rec in records:
         date = datetime.fromisoformat(rec["date_local"])
-        wind_speed = rec["readings"]["61101"]
-        by_site[rec["site_id"]].append((date, wind_speed))
+        wind = rec["readings"].get("61101")
+        pm25 = rec["readings"].get("88101")
+        north_area = rec.get("north_area_ft2")
+        south_area = rec.get("south_area_ft2")
+        if wind is None or pm25 is None or north_area is None or south_area is None:
+            continue
+        series.append((date, wind, pm25, north_area, south_area))
+    if not series:
+        print("No records with complete wind/pm25/north+south area data.")
+        return
+    series.sort(key=lambda x: x[0])
+    dates, winds, pm25s, north_areas, south_areas = zip(*series)
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    colors = cycle(plt.get_cmap("tab20").colors)
+    fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
+    axes[0].scatter(dates, winds, s=10, color="#1f77b4")
+    axes[0].set_ylabel("Wind speed")
+    axes[0].grid(True, alpha=0.3)
 
-    for site_id, points in sorted(by_site.items()):
-        points.sort(key=lambda p: p[0])
-        dates, wind_speeds = zip(*points)
-        ax.scatter(dates, wind_speeds, s=12, color=next(colors), label=site_id)
+    axes[1].scatter(dates, pm25s, s=10, color="#d62728")
+    axes[1].set_ylabel("PM2.5 (µg/m³)")
+    axes[1].grid(True, alpha=0.3)
 
-    ax.set_title("Wind Speed (61101) by Nearby Sites")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Wind speed")
-    ax.legend(title="Site ID", markerscale=1.2)
-    ax.grid(True, alpha=0.3)
+    axes[2].scatter(dates, south_areas, s=10, color="#2ca02c", label="South")
+    axes[2].scatter(dates, north_areas, s=10, color="#9467bd", label="North", alpha=0.7)
+    axes[2].set_ylabel("Surface area (ft²)")
+    axes[2].grid(True, alpha=0.3)
+    axes[2].legend()
+    axes[2].set_xlabel("Date")
 
-    # Label x-axis ticks once per year.
-    ax.xaxis.set_major_locator(YearLocator(1))
-    ax.xaxis.set_major_formatter(DateFormatter("%Y"))
+    for ax in axes:
+        ax.xaxis.set_major_locator(YearLocator(1))
+        ax.xaxis.set_major_formatter(DateFormatter("%Y"))
+
+    fig.suptitle("Daily wind, PM2.5, and north/south surface area")
     fig.autofmt_xdate()
-
-    plt.tight_layout()
+    plt.tight_layout(rect=(0, 0, 1, 0.97))
     plt.show()
 
 
