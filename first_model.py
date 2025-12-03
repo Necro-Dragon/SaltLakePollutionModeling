@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp, solve_bvp
 from scipy.optimize import minimize
-from load_cleaned import load_windspeed_and_pm10
+from data_loading_utils import load_windspeed_and_pm10
 from datetime import datetime
 
 def solve(wind_data, historic_pm10_data, start_date):
