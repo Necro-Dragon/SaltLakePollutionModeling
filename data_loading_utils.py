@@ -64,7 +64,7 @@ counties_needed = sorted({sid.split("-")[0] for sid in site_coords})
 SITE_INFO = {sid: {"latitude": lat, "longitude": lon} for sid, (lat, lon) in site_coords.items()}
 
 
-def load_nearby_daily(county_site_id="035-3014", max_backup_radius=0.25, params=None):
+def load_nearby_daily(county_site_id="035-3014", max_backup_radius=0.25, params=None, max_val=False):
     """Return daily records with the nearest site that has all params."""
     if params is None:
         params = ["61101", "81102", "88101"]
@@ -95,7 +95,10 @@ def load_nearby_daily(county_site_id="035-3014", max_backup_radius=0.25, params=
                         continue
                     date = row.get("date_local")
                     try:
-                        val = float(row.get("arithmetic_mean", ""))
+                        if max_val:
+                            val = float(row.get("max_value", ""))
+                        else:
+                            val = float(row.get("arithmetic_mean", ""))
                     except (TypeError, ValueError):
                         continue
                     param_data[param][(site_id, date)] = val
@@ -208,3 +211,24 @@ if __name__ == "__main__":
 def get_windspeed_pm10_sa(start_date, end_date, county_site_id="035-3014"):
     windspeed_data, pm10_recordings = load_windspeed_and_pm10(start_date, end_date, county_site_id)
     return windspeed_data, pm10_recordings, load_surface_area(start_date, end_date, county_site_id)
+
+def get_maxwindspeed(start_date, end_date, county_site_id="035-3014"):
+    """Return (windspeed list, PM10 list) between start_date and end_date (inclusive)."""
+    records = load_nearby_daily(county_site_id=county_site_id, max_backup_radius=0.25, params=["81102", "61101"], max_val=True)
+    if not records:
+        return []
+    start = datetime.fromisoformat(start_date)
+    end = datetime.fromisoformat(end_date)
+    series = []
+    for rec in records:
+        d = datetime.fromisoformat(rec["date_local"])
+        if start <= d <= end:
+            readings = rec["readings"]
+            if "61101" in readings and "81102" in readings:
+                series.append((d, readings["61101"], readings["81102"]))
+    series.sort(key=lambda x: x[0])
+    return [w for _, w, _ in series]
+
+def get_all(start_date, end_date, county_site_id="035-3014"):
+    windspeed_data, pm10_recordings = load_windspeed_and_pm10(start_date, end_date, county_site_id)
+    return windspeed_data, get_maxwindspeed(start_date, end_date, county_site_id), pm10_recordings, load_surface_area(start_date, end_date, county_site_id)
