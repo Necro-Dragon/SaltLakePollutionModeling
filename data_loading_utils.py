@@ -64,7 +64,7 @@ counties_needed = sorted({sid.split("-")[0] for sid in site_coords})
 SITE_INFO = {sid: {"latitude": lat, "longitude": lon} for sid, (lat, lon) in site_coords.items()}
 
 
-def load_nearby_daily(county_site_id="035-3014", max_backup_radius=0.25, params=None, max_val=False):
+def load_nearby_daily(county_site_id="011-0004", max_backup_radius=0.25, params=None, max_val=False):
     """Return daily records with the nearest site that has all params."""
     if params is None:
         params = ["61101", "81102", "88101"]
