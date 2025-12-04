@@ -1,12 +1,14 @@
 '''
-Third model iteration (TBD)
+Third Model
+
+We are exploring the pollution added by the lake as a quadratic relation with wind
 '''
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp, solve_bvp
 from scipy.optimize import minimize
-from data_loading_utils import load_windspeed_and_pm10, load_surface_area, get_windspeed_pm10_sa, get_all
+from data_loading_utils import load_windspeed_and_pm10, load_surface_area, get_windspeed_pm10_sa
 from datetime import datetime
 import calendar
 
@@ -24,7 +26,7 @@ def solve(wind_data, max_wind_data, historic_pm10_data, surface_area_data, healt
 
     def f(t):
         max_wind_speed_t = max_wind_data[int(round(t))]
-        if max_wind_speed_t >= 18:
+        if max_wind_speed_t >= 6:
             exposed_surface_area = healthy_lake_surface_area - surface_area_data[int(round(t))]
             return (concentration*density_of_arsenic_in_lake*exposed_surface_area*max_wind_speed_t)/mass_of_arsenic
         else:
@@ -75,6 +77,6 @@ def solve(wind_data, max_wind_data, historic_pm10_data, surface_area_data, healt
 
     return best_c, best_d, best_kapa
 
-wind_data, max_wind_data, pm10_recordings, surface_area_data = get_all("2000-01-01", "2024-12-31")
+wind_data, pm10_recordings, surface_area_data = get_windspeed_pm10_sa("2020-01-01", "2021-12-31")
 
-solve(wind_data, max_wind_data, pm10_recordings, surface_area_data, np.max(surface_area_data), "Jan 1. 2021")
+solve(wind_data, wind_data, pm10_recordings, surface_area_data, np.max(surface_area_data), "Jan 1. 1999")
