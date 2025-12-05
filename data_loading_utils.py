@@ -170,9 +170,9 @@ def _add_surface_area_features(records, surface_csv_path=SURFACE_AREAS_PATH):
     return enriched
 
 
-def load_windspeed_and_pm10(start_date, end_date, county_site_id="035-3014"):
+def load_windspeed_and_pm10(start_date, end_date):
     """Return (windspeed list, PM10 list) between start_date and end_date (inclusive)."""
-    records = load_nearby_daily(county_site_id=county_site_id, max_backup_radius=0.25, params=["61101", "81102"])
+    records = load_nearby_daily(max_backup_radius=0.25, params=["61101", "81102"])
     if not records:
         return [], []
     start = datetime.fromisoformat(start_date)
@@ -187,8 +187,8 @@ def load_windspeed_and_pm10(start_date, end_date, county_site_id="035-3014"):
     series.sort(key=lambda x: x[0])
     return [w for _, w, _ in series], [p for _, _, p in series]
 
-def load_surface_area(start_date, end_date, county_site_id="035-3014"):
-    records = load_nearby_daily(county_site_id=county_site_id, max_backup_radius=0.25, params=["61101", "81102"])
+def load_surface_area(start_date, end_date):
+    records = load_nearby_daily(max_backup_radius=0.25, params=["61101", "81102"])
     records = _add_surface_area_features(records)
     start = datetime.fromisoformat(start_date)
     end = datetime.fromisoformat(end_date)
@@ -208,13 +208,13 @@ if __name__ == "__main__":
     if sample:
         print("Sample record:", sample[0])
 
-def get_windspeed_pm10_sa(start_date, end_date, county_site_id="035-3014"):
-    windspeed_data, pm10_recordings = load_windspeed_and_pm10(start_date, end_date, county_site_id)
-    return windspeed_data, pm10_recordings, load_surface_area(start_date, end_date, county_site_id)
+def get_windspeed_pm10_sa(start_date, end_date):
+    windspeed_data, pm10_recordings = load_windspeed_and_pm10(start_date, end_date)
+    return windspeed_data, pm10_recordings, load_surface_area(start_date, end_date)
 
-def get_maxwindspeed(start_date, end_date, county_site_id="035-3014"):
+def get_maxwindspeed(start_date, end_date):
     """Return (windspeed list, PM10 list) between start_date and end_date (inclusive)."""
-    records = load_nearby_daily(county_site_id=county_site_id, max_backup_radius=0.25, params=["81102", "61101"], max_val=True)
+    records = load_nearby_daily(max_backup_radius=0.25, params=["81102", "61101"], max_val=True)
     if not records:
         return []
     start = datetime.fromisoformat(start_date)
@@ -229,6 +229,6 @@ def get_maxwindspeed(start_date, end_date, county_site_id="035-3014"):
     series.sort(key=lambda x: x[0])
     return [w for _, w, _ in series]
 
-def get_all(start_date, end_date, county_site_id="035-3014"):
-    windspeed_data, pm10_recordings = load_windspeed_and_pm10(start_date, end_date, county_site_id)
-    return windspeed_data, get_maxwindspeed(start_date, end_date, county_site_id), pm10_recordings, load_surface_area(start_date, end_date, county_site_id)
+def get_all(start_date, end_date):
+    windspeed_data, pm10_recordings = load_windspeed_and_pm10(start_date, end_date)
+    return windspeed_data, get_maxwindspeed(start_date, end_date), pm10_recordings, load_surface_area(start_date, end_date)
