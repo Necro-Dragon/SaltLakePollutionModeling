@@ -18,15 +18,15 @@ def solve(wind_data, max_wind_data, historic_pm10_data, surface_area_data, healt
     eta = 20
     s = lambda t: wind_data[int(round(t))]
 
-    density_of_arsenic_in_lake =  5.73
-    mass_of_arsenic = 74.92
+    atomic_density_of_arsenic =  5.73
+    mass_of_arsenic = 74.92159
     concentration = 0.18 * 1e-6
 
     def f(t):
         max_wind_speed_t = max_wind_data[int(round(t))]
         if max_wind_speed_t >= 18:
             exposed_surface_area = healthy_lake_surface_area - surface_area_data[int(round(t))]
-            return ((concentration*density_of_arsenic_in_lake*exposed_surface_area)/mass_of_arsenic)*max_wind_speed_t**2
+            return ((concentration*atomic_density_of_arsenic*exposed_surface_area)/mass_of_arsenic)*max_wind_speed_t**2
         else:
             return 0
 
@@ -77,4 +77,4 @@ def solve(wind_data, max_wind_data, historic_pm10_data, surface_area_data, healt
 
 wind_data, max_wind_data, pm10_recordings, surface_area_data = get_all("2024-01-01", "2024-12-31")
 
-solve(wind_data, max_wind_data, pm10_recordings, surface_area_data, np.max(surface_area_data), "Jan 1. 2024")
+solve(wind_data, max_wind_data, pm10_recordings, surface_area_data, 31804934478, "Jan 1. 2024")

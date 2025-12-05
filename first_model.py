@@ -15,7 +15,7 @@ def solve(wind_data, max_wind_data, historic_pm10_data, start_date):
     t0 = 0
     tf = min(len(wind_data), len(historic_pm10_data)) - 1
 
-    eta = 20
+    eta = 21
     s = lambda t: wind_data[int(round(t))]
     f = lambda t: 37.0 if max_wind_data[int(round(t))] >= 18 else 0.0
 
