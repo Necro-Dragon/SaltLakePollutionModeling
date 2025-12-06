@@ -1,8 +1,10 @@
 '''
-Third model adds seasonal variation to the water level of the
-Great Salt Lake and accounts for a "spill-over" relation to the added arsenic pollution
 
-Fall is the minimum and spring is the maximum, following a sine curve.
+Third model adds seasonal variation to the water level of the
+Great Salt Lake and accounts for a "spill-over" relation to the added arsenic concentration with our modified f
+
+P'(t) = c(\alpha)S(t) - dP(t))S(t) + f(t)
+
 '''
 
 import numpy as np
@@ -12,16 +14,15 @@ from scipy.optimize import minimize
 from data_loading_utils import get_all
 
 def solve(wind_data, max_wind_data, historic_pm10_data, surface_area_data, healthy_lake_surface_area, start_date):
-    # P'(t) = c(\alpha)S(t) - dP(t))S(t) + f(t)
     t0 = 0
     tf = min(len(wind_data), len(historic_pm10_data)) - 1
 
-    eta = 20
+    eta = 21
     s = lambda t: wind_data[int(round(t))]
 
     atomic_density_of_arsenic =  5.73
     mass_of_arsenic = 74.92159
-    concentration = 0.18 * 1e-6
+    concentration = 0.1 * 1e-6
 
     def f(t):
         max_wind_speed_t = max_wind_data[int(round(t))]
@@ -55,27 +56,28 @@ def solve(wind_data, max_wind_data, historic_pm10_data, surface_area_data, healt
         # Calculate the error
         return np.linalg.norm(diff)
 
-    result = minimize(calculate_error, [0.1, 0.1, 0.1], bounds=[(0, None)])
-    best_alpha = result.x[0]
-    best_beta = result.x[1]
-    best_kappa = result.x[2]
+    # result = minimize(calculate_error, [0.1, 0.1, 0.1], bounds=[(0, None)])
+    best_alpha = 0.1295974643568898
+    best_beta = 0.0998764343895804
+    best_kappa = 0.09990390573191127
 
-    print(f"Found minimal error with alpha = {best_alpha}")
-    print(f"Found minimal error with beta = {best_beta}")
-    print(f"Found minimal error with kappa = {best_kappa}")
+    # print(f"Found minimal error with alpha = {best_alpha}")
+    # print(f"Found minimal error with beta = {best_beta}")
+    # print(f"Found minimal error with kappa = {best_kappa}")
 
     sol = solve_pollutant_model(best_alpha, best_beta, best_kappa)
     plt.figure(figsize=(7, 4))
     plt.plot(sol.t, historic_pm10_data, label="Data")
     plt.plot(sol.t, sol.y[0], label="Pollutant Prediction")
-    plt.title("Modeling Pollutant (PM10) over time")
-    plt.ylabel("ppm")
+    plt.title("Modeling Pollutant (PM10) in 2024 with\n a Hypothetical 0 Water")
+    plt.ylabel(r"$\mu g / m^3$")
     plt.xlabel(f"Days since {start_date}")
     plt.legend()
     plt.show()
 
     return best_alpha, best_beta, best_kappa
 
-wind_data, max_wind_data, pm10_recordings, surface_area_data = get_all("2024-01-01", "2024-06-30")
+wind_data, max_wind_data, pm10_recordings, surface_area_data = get_all("2024-01-01", "2024-12-30")
+# solve(wind_data, max_wind_data, pm10_recordings, surface_area_data, 31804934478, "Days Since Jan. 1 2024")
 
-solve(wind_data, max_wind_data, pm10_recordings, surface_area_data, 31804934478, "Jan 1. 2024")
+solve(wind_data, max_wind_data, pm10_recordings, 31804934478*np.zeros_like(wind_data), 31804934478, "Days Since Jan. 1 2024")
